@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Mint PY | Tienda Gamer y Streaming</title>
+    <style>
+        /* Variables y Reset - TEMA VERDE LIMA */
+        :root {
+            --bg-main: #0b0b0b;
+            --bg-card: #121212;
+            --primary-lime: #39FF14;
+            --hover-lime: #32CD32;
+            --light-lime: #A3E635;
+            --text: #ffffff;
+            --text-muted: #a1a1aa;
+            --border: #333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text); padding-bottom: 50px; }
+
+        /* Header */
+        header { padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f1f1f; background: #000; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .cart-btn { background: transparent; border: 1px solid var(--primary-lime); color: white; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .cart-btn:hover { background: var(--primary-lime); color: black; }
+
+        /* VISTA: INICIO */
+        #view-home { display: block; }
+        .hero-box { text-align: center; padding: 60px 20px; background: linear-gradient(180deg, #0a1a0a 0%, var(--bg-main) 100%); border-bottom: 1px solid var(--border); }
+        .hero-box h1 { font-size: 2.5rem; margin-bottom: 10px; color: var(--text); }
+        .hero-box p { color: var(--text-muted); font-size: 1.1rem; }
+        
+        .game-grid { display: flex; justify-content: center; gap: 20px; padding: 40px 20px 10px; flex-wrap: wrap; }
+        .game-card { width: 250px; height: 350px; border-radius: 15px; background-color: var(--bg-card); cursor: pointer; transition: 0.3s; overflow: hidden; border: 2px solid transparent; position: relative; }
+        .game-card:hover { transform: translateY(-5px); border-color: var(--primary-lime); box-shadow: 0 10px 20px rgba(57, 255, 20, 0.15); }
+        .game-cover { width: 100%; height: 100%; background-size: cover; background-position: center; }
+        .game-title { position: absolute; bottom: 0; width: 100%; padding: 20px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%); font-size: 1.5rem; font-weight: bold; }
+
+        /* VISTA: DETALLE DEL JUEGO */
+        #view-detail { display: none; max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .btn-back { background: transparent; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .btn-back:hover { color: var(--primary-lime); }
+
+        .detail-container { display: flex; gap: 40px; flex-wrap: wrap; }
+        .detail-left { flex: 1; min-width: 300px; }
+        .detail-cover { width: 100%; height: 500px; border-radius: 15px; background-size: cover; background-position: center; border: 1px solid var(--border); position: relative; overflow: hidden;}
+        
+        .detail-right { flex: 2; min-width: 350px; }
+        .detail-right h1 { font-size: 2.5rem; margin-bottom: 5px; text-transform: uppercase; }
+        .badges { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+        .badge { display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 0.9rem; }
+        .badge-box { border: 1px solid var(--primary-lime); padding: 5px 10px; border-radius: 6px; color: var(--light-lime); }
+
+        /* Grilla de Paquetes */
+        .package-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 30px; }
+        .pkg-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px; cursor: pointer; transition: 0.2s; background: transparent; position: relative; }
+        .pkg-title { font-weight: bold; font-size: 0.95rem; margin-bottom: 5px; color: var(--text); }
+        .pkg-price { color: var(--light-lime); font-size: 0.85rem; font-weight: bold; }
+        
+        .pkg-card:hover { border-color: var(--primary-lime); background: rgba(57, 255, 20, 0.05); }
+        .pkg-card.active { background-color: var(--primary-lime); border-color: var(--primary-lime); }
+        .pkg-card.active .pkg-title { color: #000; }
+        .pkg-card.active .pkg-price { color: #111; }
+        .pkg-card.active::after { content: '✔'; position: absolute; top: 10px; right: 10px; font-weight: bold; color: #000; }
+
+        /* Formulario Inferior */
+        .user-id-section { margin-bottom: 20px; }
+        .user-id-section label { display: block; font-size: 1.1rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-lime); font-weight: bold; }
+        .user-id-section p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+        .user-id-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid var(--border); color: white; font-size: 1.2rem; padding: 10px 0; outline: none; transition: 0.3s; }
+        .user-id-input:focus { border-color: var(--primary-lime); }
+
+        .streaming-note { display: none; color: var(--hover-lime); font-size: 0.9rem; margin-bottom: 20px; font-weight: bold; background: rgba(57, 255, 20, 0.1); padding: 10px; border-left: 3px solid var(--primary-lime); border-radius: 4px; }
+
+        /* Resumen de Precio */
+        .price-summary { border-top: 1px solid var(--border); padding-top: 20px; margin-bottom: 20px; }
+        .price-summary h4 { color: var(--text-muted); font-weight: normal; margin-bottom: 5px; }
+        .total-price-display { display: flex; align-items: baseline; gap: 10px; margin-bottom: 5px; }
+        .total-price-display .currency { font-size: 2rem; font-weight: bold; color: white; }
+        .total-price-display .tax-note { color: var(--primary-lime); font-size: 0.9rem; }
+        .selected-item-name { color: var(--light-lime); font-size: 1rem; font-weight: bold; }
+
+        /* Controles y Botones */
+        .action-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
+        .qty-controls { display: flex; background: #222; border-radius: 8px; overflow: hidden; height: 50px; border: 1px solid var(--border); }
+        .qty-btn { background: #333; color: white; border: none; width: 40px; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .qty-btn:hover { background: var(--hover-lime); color: black; }
+        .qty-input { background: transparent; border: none; color: white; width: 50px; text-align: center; font-size: 1.1rem; font-weight: bold; }
+
+        .btn-add-cart { flex: 1; background: transparent; border: 1px solid var(--primary-lime); color: white; height: 50px; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .btn-add-cart:hover { background: rgba(57, 255, 20, 0.1); color: var(--primary-lime); }
+        
+        .btn-buy-now { width: 100%; background: var(--primary-lime); color: #000; height: 55px; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-buy-now:hover { background: var(--hover-lime); }
+
+        /* Sidebar Carrito */
+        #cart-sidebar { position: fixed; right: -400px; top: 0; width: 350px; height: 100%; background: #0f0f0f; border-left: 2px solid var(--primary-lime); padding: 20px; transition: 0.3s; z-index: 200; display: flex; flex-direction: column; }
+        #cart-sidebar.open { right: 0; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
+        .cart-items { flex: 1; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; }
+        .cart-footer { border-top: 1px solid #333; padding-top: 15px; }
+
+        @media (max-width: 768px) {
+            .detail-container { flex-direction: column; }
+            .action-row { flex-direction: column; }
+            .qty-controls, .btn-add-cart { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header General -->
+    <header>
+        <div class="logo">Virtual Mint PY 🇵🇾</div>
+        <button class="cart-btn" onclick="toggleCart()">🛒 Carrito (<span id="cart-count">0</span>)</button>
+    </header>
+
+    <!-- VISTA 1: INICIO -->
+    <main id="view-home">
+        <div class="hero-box">
+            <h1>COMPRA CON NOSOTROS</h1>
+            <p>Y sé parte de esta gran comunidad gamer.</p>
+        </div>
+
+        <div class="game-grid">
+            <!-- Tarjeta Blood Strike -->
+            <div class="game-card" onclick="openGame('bloodstrike')">
+                <div class="game-cover" style="background-image: url('bloodstrike.jpeg');"></div>
+                <div class="game-title">Blood Strike</div>
+            </div>
+            <!-- Tarjeta Free Fire -->
+            <div class="game-card" onclick="openGame('freefire')">
+                <div class="game-cover" style="background-image: url('freefire.jpeg');"></div>
+                <div class="game-title">Free Fire</div>
+            </div>
+            <!-- Tarjeta Roblox -->
+            <div class="game-card" onclick="openGame('roblox')">
+                <div class="game-cover" style="background-image: url('roblox.jpeg');"></div>
+                <div class="game-title">Roblox</div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN STREAMING -->
+        <div style="width: 80%; height: 1px; background: #333; margin: 30px auto 20px;"></div>
+        <h2 style="text-align: center; color: var(--primary-lime); font-size: 1.8rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;">Streaming</h2>
+
+        <div class="game-grid" style="padding-top: 0;">
+            <!-- Tarjeta Lumix TV -->
+            <div class="game-card" onclick="openGame('lumixtv')">
+                <div class="game-cover" style="background-image: url('lumixtv.jpeg'); background-size: contain; background-repeat: no-repeat; background-color: #0b0b0b;"></div>
+            </div>
+            <!-- Tarjeta Flujo TV -->
+            <div class="game-card" onclick="openGame('flujotv')">
+                <div class="game-cover" style="background-image: url('flujotv.jpeg');"></div>
+            </div>
+            <!-- Tarjeta Spotify -->
+            <div class="game-card" onclick="openGame('spotify')">
+                <div class="game-cover" style="background-image: url('spotify.jpeg');"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- VISTA 2: DETALLE DEL JUEGO O SERVICIO -->
+    <main id="view-detail">
+        <button class="btn-back" onclick="goHome()">← Volver al inicio</button>
+        
+        <div class="detail-container">
+            <!-- Columna Izquierda: Imagen -->
+            <div class="detail-left">
+                <div id="detail-image" class="detail-cover"></div>
+            </div>
+
+            <!-- Columna Derecha: Opciones y Compra -->
+            <div class="detail-right">
+                <h1 id="detail-title">Cargando...</h1>
+                
+                <div class="badges">
+                    <div class="badge">🛡️ Canjeable sólo en Paraguay</div>
+                    <div class="badge badge-box">🏪 Distribuidor oficial</div>
+                    <div class="badge badge-box">✔️ Pago seguro</div>
+                </div>
+
+                <div class="package-grid" id="packages-container"></div>
+
+                <div class="user-id-section">
+                    <label id="input-label">USER ID</label>
+                    <p id="input-desc">Para encontrar tu ID de usuario, ingresa a [Configuración] → [Cuenta] → [ID de usuario].</p>
+                    <input type="text" id="user-id" class="user-id-input" placeholder="Ej: 123456789">
+                </div>
+
+                <div id="streaming-note" class="streaming-note">
+                    📱 Los datos de acceso y futuras renovaciones se gestionarán exclusivamente a través de tu número de WhatsApp.
+                </div>
+
+                <div class="price-summary">
+                    <h4>Precio</h4>
+                    <div class="total-price-display">
+                        <span class="currency" id="display-price">PYG 0,00</span>
+                        <span class="tax-note">Precio final impuestos incluidos</span>
+                    </div>
+                    <div class="selected-item-name" id="display-name">Selecciona un paquete</div>
+                </div>
+
+                <div class="action-row">
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="updateQty(-1)">-</button>
+                        <input type="text" id="qty" class="qty-input" value="1" readonly>
+                        <button class="qty-btn" onclick="updateQty(1)">+</button>
+                    </div>
+                    <button class="btn-add-cart" onclick="addToCart()">Agregar al carrito</button>
+                </div>
+                <button class="btn-buy-now" onclick="buyNow()">Comprar ahora</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- CARRITO LATERAL -->
+    <div id="cart-sidebar">
+        <div class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button onclick="toggleCart()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">×</button>
+        </div>
+        <div class="cart-items" id="cart-items-list">
+            <!-- Items -->
+        </div>
+        <div class="cart-footer">
+            <h3 style="margin-bottom: 15px; display:flex; justify-content:space-between;">Total: <span id="cart-total-price" style="color: var(--primary-lime);">PYG 0</span></h3>
+            <button class="btn-buy-now" onclick="checkoutCart()">Finalizar Pedido 📱</button>
+        </div>
+    </div>
+
+    <!-- SCRIPT DE LÓGICA (Asegúrate de copiar desde aquí hacia abajo también) -->
+    <script>
+        const phone = '595991532871';
+        let cart = [];
+        
+        // Base de datos de productos
+        const db = {
+            bloodstrike: {
+                title: 'Blood Strike',
+                image: 'bloodstrike.jpeg',
+                isStreaming: false,
+                packages: [
+                    { name: '100 + 5 Gold', price: 8000 },
+                    { name: '300 + 20 Gold', price: 24000 },
+                    { name: '500 + 40 Gold', price: 30000 },
+                    { name: '605 + 40 Gold', price: 38000 },
+                    { name: '1.000 + 100 Gold', price: 62000 },
+                    { name: '1.005 + 200 Gold', price: 68000 },
+                    { name: '2.060 + 200 Gold', price: 110000 },
+                    { name: '3.020 + 100 Gold', price: 155000 },
+                    { name: '5.000 + 800 Gold', price: 274000 },
+                    { name: '10.000 + 320 Gold', price: 483000 },
+                    { name: 'Strike Pase Elite', price: 30000 },
+                    { name: 'Strike Pase Premium', price: 75000 }
+                ]
+            },
+            freefire: {
+                title: 'Free Fire',
+                image: 'freefire.jpeg',
+                isStreaming: false,
+                packages: [
+                    { name: '100 + 10 Diamantes', price: 8000 },
+                    { name: '310 + 31 Diamantes', price: 26000 },
+                    { name: '520 + 52 Diamantes', price: 35000 },
+                    { name: '1.060 + 106 Diamantes', price: 65000 },
+                    { name: '2.180 + 218 Diamantes', price: 120000 },
+                    { name: '5.600 + 560 Diamantes', price: 285000 },
+                    { name: 'Tarjeta Semanal Lite', price: 10000 },
+                    { name: 'Tarjeta Semanal', price: 17000 },
+                    { name: 'Tarjeta Mensual', price: 78000 },
+                    { name: 'Pase Booyah', price: 30000 }
+                ]
+            },
+            roblox: {
+                title: 'Roblox',
+                image: 'roblox.jpeg',
+                isStreaming: false,
+                packages: [
+                    { name: '50 Robux', price: 6500 },
+                    { name: '100 Robux', price: 12000 },
+                    { name: '300 Robux', price: 20000 },
+                    { name: '464 Robux', price: 35000 },
+                    { name: '500 Robux', price: 40000 },
+                    { name: '745 Robux', price: 50000 },
+                    { name: '1.000 Robux', price: 72000 }
+                ]
+            },
+            lumixtv: {
+                title: 'Lumix TV',
+                image: 'lumixtv.jpeg',
+                isStreaming: true,
+                packages: [
+                    { name: 'Suscripción 1 Mes', price: 50000 }
+                ]
+            },
+            flujotv: {
+                title: 'Flujo TV',
+                image: 'flujotv.jpeg',
+                isStreaming: true,
+                packages: [
+                    { name: 'Suscripción 1 Mes', price: 25000 },
+                    { name: 'Suscripción 3 Meses', price: 60000 }
+                ]
+            },
+            spotify: {
+                title: 'Spotify Premium',
+                image: 'spotify.jpeg',
+                isStreaming: true,
+                packages: [
+                    { name: 'Suscripción 1 Mes', price: 30000 }
+                ]
+            }
+        };
+
+        let currentGame = null;
+        let selectedPackage = null;
+        let currentQty = 1;
+
+        const formatMoney = (amount) => {
+            return amount.toLocaleString('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        };
+
+        function openGame(gameId) {
+            currentGame = db[gameId];
+            document.getElementById('view-home').style.display = 'none';
+            document.getElementById('view-detail').style.display = 'block';
+            
+            document.getElementById('detail-title').innerText = currentGame.title;
+            
+            const imgContainer = document.getElementById('detail-image');
+            imgContainer.innerHTML = ''; 
+            
+            if(gameId === 'lumixtv') {
+                imgContainer.style.background = `url('${currentGame.image}') center/contain no-repeat #0b0b0b`;
+            } else {
+                imgContainer.style.background = `url('${currentGame.image}') center/cover no-repeat`;
+            }
+
+            if (currentGame.isStreaming) {
+                document.getElementById('input-label').innerText = 'NÚMERO DE WHATSAPP';
+                document.getElementById('input-desc').innerText = 'Ingresa tu número para enviarte los accesos de la cuenta.';
+                document.getElementById('user-id').placeholder = 'Ej: 0981 123 456';
+                document.getElementById('streaming-note').style.display = 'block';
+            } else {
+                document.getElementById('input-label').innerText = 'USER ID';
+                document.getElementById('input-desc').innerText = 'Para encontrar tu ID de usuario, ingresa a [Configuración] → [Cuenta] → [ID de usuario].';
+                document.getElementById('user-id').placeholder = 'Ej: 123456789';
+                document.getElementById('streaming-note').style.display = 'none';
+            }
+
+            document.getElementById('user-id').value = '';
+            
+            renderPackages();
+            selectPackage(0);
+            window.scrollTo(0, 0);
+        }
+
+        function goHome() {
+            document.getElementById('view-home').style.display = 'block';
+            document.getElementById('view-detail').style.display = 'none';
+            selectedPackage = null;
+            currentQty = 1;
+            document.getElementById('qty').value = 1;
+        }
+
+        function renderPackages() {
+            const container = document.getElementById('packages-container');
+            container.innerHTML = currentGame.packages.map((pkg, index) => `
+                <div class="pkg-card" id="pkg-${index}" onclick="selectPackage(${index})">
+                    <div class="pkg-title">${pkg.name}</div>
+                    <div class="pkg-price">Gs. ${formatMoney(pkg.price)}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectPackage(index) {
+            document.querySelectorAll('.pkg-card').forEach(card => card.classList.remove('active'));
+            document.getElementById(`pkg-${index}`).classList.add('active');
+            selectedPackage = currentGame.packages[index];
+            updatePriceDisplay();
+        }
+
+        function updateQty(change) {
+            currentQty += change;
+            if(currentQty < 1) currentQty = 1;
+            document.getElementById('qty').value = currentQty;
+            updatePriceDisplay();
+        }
+
+        function updatePriceDisplay() {
+            if(!selectedPackage) return;
+            const total = selectedPackage.price * currentQty;
+            document.getElementById('display-price').innerText = `Gs. ${formatMoney(total)}`;
+            document.getElementById('display-name').innerText = `${currentQty}x ${selectedPackage.name}`;
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('open');
+        }
+
+        function addToCart() {
+            const userId = document.getElementById('user-id').value;
+            const errorMsg = currentGame.isStreaming ? 'Por favor, ingresa tu número de WhatsApp' : 'Por favor, ingresa tu USER ID';
+            if(!userId) return alert(errorMsg);
+            
+            const item = {
+                game: currentGame.title,
+                pkgName: selectedPackage.name,
+                price: selectedPackage.price,
+                qty: currentQty,
+                userId: userId,
+                isStreaming: currentGame.isStreaming
+            };
+            
+            cart.push(item);
+            updateCartUI();
+            alert('¡Agregado al carrito!');
+            
+            currentQty = 1;
+            document.getElementById('qty').value = 1;
+            document.getElementById('user-id').value = '';
+            updatePriceDisplay();
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cart-items-list');
+            let total = 0;
+            
+            list.innerHTML = cart.map((item, index) => {
+                const subtotal = item.price * item.qty;
+                total += subtotal;
+                const dataLabel = item.isStreaming ? 'Cel' : 'ID';
+                return `
+                    <div class="cart-item">
+                        <div>
+                            <strong>${item.game} - ${item.pkgName}</strong><br>
+                            <span style="color:#888; font-size:0.8rem;">${dataLabel}: ${item.userId} | Cant: ${item.qty}</span>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="color:var(--light-lime); font-weight:bold;">Gs. ${formatMoney(subtotal)}</span><br>
+                            <button onclick="removeFromCart(${index})" style="background:none; border:none; color:white; cursor:pointer; font-size:0.8rem; text-decoration:underline;">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('cart-total-price').innerText = `Gs. ${formatMoney(total)}`;
+            document.getElementById('cart-count').innerText = cart.length;
+        }
+
+        function buyNow() {
+            const userId = document.getElementById('user-id').value;
+            const errorMsg = currentGame.isStreaming ? 'Por favor, ingresa tu número de WhatsApp antes de comprar.' : 'Por favor, ingresa tu USER ID antes de comprar.';
+            if(!userId) return alert(errorMsg);
+            
+            const total = selectedPackage.price * currentQty;
+            const dataLabel = currentGame.isStreaming ? '📱 WhatsApp' : '🆔 ID de Usuario';
+
+            let msg = `*NUEVO PEDIDO - VIRTUAL MINT PY*%0A%0A`;
+            msg += `🎮 Servicio: ${currentGame.title}%0A`;
+            msg += `📦 Paquete: ${selectedPackage.name} (x${currentQty})%0A`;
+            msg += `${dataLabel}: ${userId}%0A`;
+            msg += `💰 Total: Gs. ${formatMoney(total)}%0A`;
+            
+            window.open(`https://wa.me/${phone}?text=${msg}`);
+        }
+
+        function checkoutCart() {
+            if(cart.length === 0) return alert('El carrito está vacío.');
+            
+            let msg = `*PEDIDO DEL CARRITO - VIRTUAL MINT PY*%0A%0A`;
+            let total = 0;
+            
+            cart.forEach((item, i) => {
+                const sub = item.price * item.qty;
+                total += sub;
+                const dataLabel = item.isStreaming ? 'Cel' : 'ID';
+                msg += `${i+1}. ${item.game} | ${item.pkgName} (x${item.qty})%0A   ${dataLabel}: ${item.userId} - Gs. ${formatMoney(sub)}%0A`;
+            });
+            
+            msg += `%0A💰 *TOTAL A PAGAR: Gs. ${formatMoney(total)}*%0A`;
+            window.open(`https://wa.me/${phone}?text=${msg}`);
+        }
+    </script>
+</body>
+</html>
